@@ -1,8 +1,10 @@
 #include <iostream>
 #include <ctime>
-
+#include <fstream>
+#include <vector>
 using namespace std;
 string crackPassword(const string& pass);
+string dictionaryAttack(const string& pass);
 long long int attempt;
 clock_t start_t = clock();
 clock_t end_t;
@@ -28,10 +30,19 @@ int main() {
 
     cout << "Enter the password to crack : ";
     cin >> password;
-    cout <<  crackPassword(password) << "\n\n>\n>> CRACKED THE PASSWORD! >>\n>\n The password : " << password << "\n";
-    cout << "The number of attempts : " << attempt << "\n";
-    cout << "The time duration  passed : " << (double)(end_t - start_t)/1000 << " seconds\n\n";
-    return 0;
+    string dictionaryResult = dictionaryAttack(password);
+
+    if (dictionaryResult != "Dictionary attack failed\n") {
+        cout << dictionaryResult << "\n\n>\n>> CRACKED THE PASSWORD! >>\n>\n The password : " << password << "\n";
+        cout << "The number of attempts : " << attempt << "\n";
+        cout << "The time duration  passed : " << (double)(end_t - start_t) / 1000 << " seconds\n\n";
+    } else {
+        cout << "Dictionary attack failed. Starting brute-force attack.\n";
+
+        cout << crackPassword(password) << "\n\n>\n>> CRACKED THE PASSWORD! >>\n>\n The password : " << password << "\n";
+        cout << "The number of attempts : " << attempt << "\n";
+        cout << "The time duration  passed : " << (double)(end_t - start_t) / 1000 << " seconds\n\n";
+    }
 }
 
 void textDisplayFun(int alphabetSet) {
@@ -53,7 +64,35 @@ void textDisplayFun(int alphabetSet) {
             break;
         }
 }
+string dictionaryAttack(const string& pass) {
+    string line;
+    vector<string> dictionary;
 
+    ifstream dictionaryFile("dictionary.txt");
+    if (dictionaryFile.is_open()) {
+        while (getline(dictionaryFile, line)) {
+            dictionary.push_back(line);
+        }
+        dictionaryFile.close();
+    } else {
+        cout << "Unable to open dictionary file." << endl;
+        return "Dictionary file error";
+    }
+
+    for (const string& dictPass : dictionary) {
+        attempt++;
+
+        if (attempt % 2500000 == 0)
+            cout << ".";
+
+        if (pass == dictPass) {
+            end_t = clock();
+            return dictPass;
+        }
+    }
+
+    return "Dictionary attack failed\n";
+}
 string crackPassword(const string& pass) {
     while (true) {
             switch (passwordLength) {
