@@ -76,7 +76,7 @@ string dictionaryAttack(const string& pass) {
         dictionaryFile.close();
     } else {
         cout << "Unable to open dictionary file." << endl;
-        return "Dictionary file error";
+        return "Dictionary attack failed\n";
     }
 
     for (const string& dictPass : dictionary) {
