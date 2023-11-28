@@ -2,9 +2,13 @@
 #include <ctime>
 #include <fstream>
 #include <vector>
+#include "elzip.hpp"
+
+#define OVERTIME 120
+
 using namespace std;
-string crackPassword(const string& pass);
-string dictionaryAttack(const string& pass);
+string crackPassword(const string& zipPath, const string& extractPath);
+string dictionaryAttack(const string& zipPath, const string& extractPath);
 long long int attempt;
 clock_t start_t = clock();
 clock_t end_t;
@@ -20,31 +24,40 @@ const string dictFull = "-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQR
 
 string test;
 string alphabet;
-
+string zipPath = "D:/UwU/stud/PCYB/repo/secret.zip";
+string extractPath = "D:/UwU/stud/PCYB/repo/";
 int digit[8];
 int alphabetSet = 1;
 int passwordLength = 1;
 
 int main() {
-    string password;
 
-    cout << "Enter the password to crack : ";
-    cin >> password;
-    string dictionaryResult = dictionaryAttack(password);
+
+    string dictionaryResult = dictionaryAttack(zipPath,extractPath);
 
     if (dictionaryResult != "Dictionary attack failed\n") {
-        cout << dictionaryResult << "\n\n>\n>> CRACKED THE PASSWORD! >>\n>\n The password : " << password << "\n";
+        cout << "\n\n>\n>> CRACKED THE PASSWORD! >>\n>\n The password : " << dictionaryResult << "\n";
         cout << "The number of attempts : " << attempt << "\n";
         cout << "The time duration  passed : " << (double)(end_t - start_t) / 1000 << " seconds\n\n";
     } else {
-        cout << "Dictionary attack failed. Starting brute-force attack.\n";
-
-        cout << crackPassword(password) << "\n\n>\n>> CRACKED THE PASSWORD! >>\n>\n The password : " << password << "\n";
+        if((double)(end_t - start_t) / 1000 > OVERTIME ) {
+            cout << "Dictionary attack overtime. Starting brute-force attack.\n";
+        }else{
+        cout << "Dictionary attack failed. Starting brute-force attack.\n";}
+        string bruteForceResult = crackPassword(zipPath,extractPath);
+        cout <<  "\n\n>\n>> CRACKED THE PASSWORD! >>\n>\n The password : " << bruteForceResult << "\n";
         cout << "The number of attempts : " << attempt << "\n";
         cout << "The time duration  passed : " << (double)(end_t - start_t) / 1000 << " seconds\n\n";
     }
 }
-
+bool extractZipSuccessfully(const string& zipPath, const string& extractPath, const string& password) {
+    try {
+        elz::extractZip(zipPath, extractPath, password);
+    } catch (const elz::zip_exception& e) {
+        return false;
+    }
+    return true;
+}
 void textDisplayFun(int alphabetSet) {
         switch (alphabetSet) {
             case 1 : alphabet = dictDigits;
@@ -64,7 +77,8 @@ void textDisplayFun(int alphabetSet) {
             break;
         }
 }
-string dictionaryAttack(const string& pass) {
+string dictionaryAttack(const string& zipPath, const string& extractPath) {
+    cout << "Starting Dictionary Attack" << endl;
     string line;
     vector<string> dictionary;
 
@@ -81,11 +95,13 @@ string dictionaryAttack(const string& pass) {
 
     for (const string& dictPass : dictionary) {
         attempt++;
-
-        if (attempt % 2500000 == 0)
+        end_t = clock();
+        if (attempt % 2500 == 0)
             cout << ".";
-
-        if (pass == dictPass) {
+        if((double)(end_t - start_t) / 1000 > OVERTIME){
+            return "Dictionary attack failed\n";
+        }
+        if (extractZipSuccessfully(zipPath, extractPath, dictPass)) {
             end_t = clock();
             return dictPass;
         }
@@ -93,7 +109,7 @@ string dictionaryAttack(const string& pass) {
 
     return "Dictionary attack failed\n";
 }
-string crackPassword(const string& pass) {
+string crackPassword(const string& zipPath, const string& extractPath) {
     while (true) {
             switch (passwordLength) {
                 case 1:
@@ -114,7 +130,7 @@ string crackPassword(const string& pass) {
                             for (int i=1; i < passwordLength; i++)
                                 if (alphabet[digit[i]] != '-')
                                     test += alphabet[digit[i]];
-                            if(pass == test) {
+                            if(extractZipSuccessfully(zipPath, extractPath, test)) {
                                 end_t = clock();
                                 return test;
                             }
@@ -146,7 +162,7 @@ string crackPassword(const string& pass) {
                                 for (int i = 1; i < passwordLength; i++)
                                     if (alphabet[digit[i]] != '-')
                                         test += alphabet[digit[i]];
-                                if (pass == test) {
+                                if (extractZipSuccessfully(zipPath, extractPath, test)) {
                                     end_t = clock();
                                     return test;
                                 }
@@ -169,7 +185,7 @@ string crackPassword(const string& pass) {
                                     for (int i = 1; i < passwordLength; i++)
                                         if (alphabet[digit[i]] != '-')
                                             test += alphabet[digit[i]];
-                                    if (pass == test) {
+                                    if (extractZipSuccessfully(zipPath, extractPath, test)) {
                                         end_t = clock();
                                         return test;
                                     }
@@ -190,7 +206,7 @@ string crackPassword(const string& pass) {
                                         for (int i = 1; i < passwordLength; i++)
                                             if (alphabet[digit[i]] != '-')
                                                 test += alphabet[digit[i]];
-                                        if (pass == test) {
+                                        if (extractZipSuccessfully(zipPath, extractPath, test)) {
                                             end_t = clock();
                                             return test;
                                         }
@@ -214,7 +230,7 @@ string crackPassword(const string& pass) {
                                             for (int i = 1; i < passwordLength; i++)
                                                 if(alphabet[digit[i]] != '-')
                                                     test += alphabet[digit[i]];
-                                            if (pass == test) {
+                                            if (extractZipSuccessfully(zipPath, extractPath, test)) {
                                                 end_t = clock();
                                                 return test;
                                             }
@@ -239,7 +255,7 @@ string crackPassword(const string& pass) {
                                                     for (int i = 1; i < passwordLength; i++)
                                                         if (alphabet[digit[i]] != '-')
                                                             test += alphabet[digit[i]];
-                                                    if (pass == test) {
+                                                    if (extractZipSuccessfully(zipPath, extractPath, test)) {
                                                         end_t = clock();
                                                         return test;
                                                     }
@@ -265,7 +281,7 @@ string crackPassword(const string& pass) {
                                                     for (int i = 1; i < passwordLength; i++)
                                                         if (alphabet[digit[i]] != '-')
                                                             test += alphabet[digit[i]];
-                                                    if (pass == test) {
+                                                    if (extractZipSuccessfully(zipPath, extractPath, test)) {
                                                         end_t = clock();
                                                         return test;
                                                     }
@@ -292,7 +308,7 @@ string crackPassword(const string& pass) {
                                                         for (int i = 1; i < passwordLength; i++)
                                                             if (alphabet[digit[i]] != '-')
                                                                 test += alphabet[digit[i]];
-                                                        if (pass == test) {
+                                                        if (extractZipSuccessfully(zipPath, extractPath, test)) {
                                                             end_t = clock();
                                                             return test;
                                                         }
@@ -320,7 +336,7 @@ string crackPassword(const string& pass) {
                                                             for (int i = 1; i < passwordLength; i++)
                                                                 if (alphabet[digit[i]] != '-')
                                                                     test += alphabet[digit[i]];
-                                                            if (pass == test) {
+                                                            if (extractZipSuccessfully(zipPath, extractPath, test)) {
                                                                 end_t = clock();
                                                                 return test;
                                                             }
